@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Prisma Flex – BIVA Checklista</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b1120;
+    --surface: #121d30;
+    --surface2: #1a2840;
+    --border: #243450;
+    --accent: #2dd4bf;
+    --accent2: #38bdf8;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --success: #22c55e;
+    --text: #f1f5f9;
+    --muted: #a0b4cc;
+    --phase-1: #6366f1;
+    --phase-2: #8b5cf6;
+    --phase-3: #06b6d4;
+    --phase-4: #0ea5e9;
+    --phase-5: #3b82f6;
+    --phase-6: #10b981;
+    --phase-7: #f59e0b;
+    --phase-8: #f97316;
+    --phase-9: #ef4444;
+    --radius: 12px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+    overscroll-behavior: none;
+  }
+
+  /* HEADER */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(11,17,32,0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px 10px;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .logo-area {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .logo-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .logo-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .logo-title span { color: var(--accent); }
+
+  .reset-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .reset-btn:active { background: var(--surface2); color: var(--text); }
+
+  /* Confirm dialog */
+  .confirm-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: calc(20px + var(--safe-bottom));
+  }
+  .confirm-overlay.show { display: flex; }
+  .confirm-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    width: calc(100% - 32px);
+    max-width: 400px;
+    animation: slideUp 0.2s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+  .confirm-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .confirm-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .confirm-btns {
+    display: flex;
+    gap: 10px;
+  }
+  .confirm-btns button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+  }
+  .confirm-cancel { background: var(--surface); color: var(--muted); border: 1px solid var(--border) !important; }
+  .confirm-ok { background: var(--danger); color: #fff; }
+
+  /* PROGRESS BAR */
+  .progress-area { }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .progress-label strong { color: var(--accent); }
+
+  .progress-track {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 99px;
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+    width: 0%;
+  }
+
+  /* PHASE NAV */
+  .phase-nav {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 10px 16px 2px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .phase-nav::-webkit-scrollbar { display: none; }
+
+  .phase-tab {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .phase-tab.active {
+    background: var(--phase-color, var(--accent));
+    border-color: transparent;
+    color: #fff;
+  }
+
+  .phase-tab .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .phase-tab.done .dot { opacity: 1; background: var(--success); }
+
+  /* CONTENT */
+  .content {
+    padding: 12px 16px calc(80px + var(--safe-bottom));
+  }
+
+  /* PHASE PANEL */
+  .phase-panel { display: none; }
+  .phase-panel.active { display: block; animation: fadeUp 0.25s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .phase-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+    background: var(--phase-color, var(--accent));
+  }
+
+  .phase-title-area { flex: 1; }
+  .phase-number { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .phase-title { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+  .phase-subtitle { font-size: 12px; color: #8baabf; margin-top: 1px; font-style: italic; font-weight: 500; }
+
+  .phase-progress {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* SECTION */
+  .section-label {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8baabf;
+    margin: 16px 0 8px;
+  }
+
+  /* CHECKLIST ITEM */
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    -webkit-user-select: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .check-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--phase-color, var(--accent));
+    border-radius: 3px 0 0 3px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .check-item.checked {
+    background: rgba(34,197,94,0.06);
+    border-color: rgba(34,197,94,0.2);
+  }
+
+  .check-item.checked::before { opacity: 0; }
+
+  .check-item.warn-item {
+    background: rgba(245,158,11,0.06);
+    border-color: rgba(245,158,11,0.25);
+  }
+
+  .check-item.danger-item {
+    background: rgba(239,68,68,0.06);
+    border-color: rgba(239,68,68,0.3);
+  }
+
+  .checkbox {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+    transition: all 0.2s;
+    background: var(--surface2);
+  }
+
+  .check-item.checked .checkbox {
+    background: var(--success);
+    border-color: var(--success);
+  }
+
+  .checkmark {
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.15s;
+  }
+  .check-item.checked .checkmark {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .check-content { flex: 1; }
+  .check-main {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+    transition: color 0.2s;
+  }
+  .check-item.checked .check-main {
+    color: var(--muted);
+    text-decoration: line-through;
+    text-decoration-color: rgba(160,180,204,0.4);
+  }
+
+  .check-note {
+    font-size: 12px;
+    color: #8baabf;
+    margin-top: 4px;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 99px;
+    margin-bottom: 4px;
+  }
+  .tag-stop { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+  .tag-warn { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+  .tag-info { background: rgba(14,165,233,0.12); color: #38bdf8; border: 1px solid rgba(14,165,233,0.25); }
+  .tag-ok   { background: rgba(34,197,94,0.12); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+
+  /* INFO BOX */
+  .info-box {
+    background: rgba(14,165,233,0.08);
+    border: 1px solid rgba(14,165,233,0.2);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #94d2f5;
+    line-height: 1.5;
+  }
+
+  .warn-box {
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #fbbf24;
+    line-height: 1.5;
+  }
+
+  .danger-box {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #f87171;
+    line-height: 1.5;
+  }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    background: rgba(11,17,32,0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    padding: 10px 16px calc(10px + var(--safe-bottom));
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+  }
+
+  .nav-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .nav-btn.primary {
+    background: var(--phase-color, var(--accent));
+    border-color: transparent;
+    color: #fff;
+  }
+
+  .nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+  /* COMPLETE STATE */
+  .complete-overlay {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+    animation: fadeUp 0.4s ease;
+  }
+  .complete-overlay.show { display: block; }
+
+  .complete-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+
+  .complete-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--success);
+    margin-bottom: 8px;
+  }
+
+  .complete-sub {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* TOOLTIP / EXPAND */
+  .check-item.expanded .check-note { display: block; }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+    opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-top">
+    <div class="logo-area">
+      <span class="logo-label">BIVA · ALB · Karolinska</span>
+      <span class="logo-title">Prisma <span>Flex</span></span>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">↺ Rensa</button>
+  </div>
+  <div class="progress-area">
+    <div class="progress-label">
+      <span>Total progress</span>
+      <strong id="total-pct">0%</strong>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="total-fill"></div>
+    </div>
+  </div>
+</header>
+
+<nav class="phase-nav" id="phase-nav">
+  <!-- tabs injected by JS -->
+</nav>
+
+<main class="content" id="content">
+  <!-- panels injected by JS -->
+</main>
+
+<div class="confirm-overlay" id="confirm-overlay" onclick="closeConfirm(event)">
+  <div class="confirm-box">
+    <div class="confirm-title">Rensa alla bockar?</div>
+    <div class="confirm-sub">All progress återställs. Kan inte ångras.</div>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="hideConfirm()">Avbryt</button>
+      <button class="confirm-ok" onclick="doReset()">Rensa allt</button>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <button class="nav-btn" id="btn-prev" onclick="navigate(-1)">← Föregående</button>
+  <button class="nav-btn primary" id="btn-next" onclick="navigate(1)">Nästa →</button>
+</div>
+
+<script>
+const phases = [
+  {
+    id: 1,
+    title: "Kliniska triggers",
+    subtitle: "Identifiera indikation – agera proaktivt",
+    color: "#6366f1",
+    sections: [
+      {
+        label: "AKI – beslutsstöd",
+        items: [
+          { text: "Stadium 2 + hemodynamisk instabilitet", note: "Bevaka tätt – ta beslut inom passet. FO% stiger? Kontakta läkare.", warn: true },
+          { text: "Stadium 3 / anuri > 12–24 h", note: "Brådskande – planera under pågående pass. Säkra CDK.", warn: true },
+          { text: "IEM / hyperammonemi > 200–300 μmol/L", note: "AKUT – minuter till timmar. Kontakta läkare omedelbart. Hjärnödemsrisk.", danger: true },
+          { text: "Hyperkalemi K+ > 6,5 + EKG-förändring", note: "AKUT – arytmirisk. Säkra EKG-övervakning. Medicinsk behandling parallellt.", danger: true },
+          { text: "Metabol acidos pH < 7,15", note: "AKUT – hotad hjärtfunktion. CRRT med bikarbonat i dialysat.", danger: true },
+          { text: "Fluid Overload > 15% med respiratorisk påverkan", note: "Brådskande – gradvis devätskning. Abrupt = hemodynamisk kollaps.", warn: true },
+        ]
+      },
+      {
+        label: "Att förbereda",
+        items: [
+          { text: "Situationen identifierad och kommunicerad till ansvarig läkare" },
+          { text: "Förberedelsearbete påbörjat – material redo INNAN beslut fattas" },
+          { text: "Beslutet om CRRT-start bekräftat av läkare", ok: true },
+        ]
+      }
+    ]
+  },
+  {
+    id: 2,
+    title: "Plocklista & material",
+    subtitle: "Förbered utifrån barnets vikt",
+    color: "#8b5cf6",
+    sections: [
+      {
+        label: "Filterval (extrakorporeal volym)",
+        items: [
+          { text: "HF20 – vikt 2–15 kg", note: "58 ml ext.vol · EVF 45% · Specifik blodvärmarslang · Blodpriming behövs!", info: true },
+          { text: "ST60 – vikt 11–30 kg", note: "97 ml ext.vol · EVF 40% · Standardslang · Ingen blodpriming" },
+          { text: "ST100 – vikt > 30 kg", note: "155 ml ext.vol · EVF 40% · Standardslang · Ingen blodpriming" },
+        ]
+      },
+      {
+        label: "Kontrollera att du har plockat",
+        items: [
+          { text: "Prisma Flex-maskin (kontrollera vågkrokar på varje våg)" },
+          { text: "Korrekt filter (utifrån vikt)" },
+          { text: "Korrekt blodvärmarslang (HF20 = specifik sort – EJ utbytbar)" },
+          { text: "NaCl 0,9% 1000 ml × 2" },
+          { text: "Heparin APL 1000 E/ml × 2–3 ampuller" },
+          { text: "20 ml spruta för heparinspruta till maskinen" },
+          { text: "3-vägs slangar macro × 2 (OBS: inga smartsites!)" },
+          { text: "Dialys-/ersättningsvätska (Hemosol B0 eller Phoxilium per ordination)" },
+          { text: "Extra koagulationsrör (ljusblå) × 4–5 st" },
+          { text: "Primeblod EVF 45% beställt (HF20) – tar 1–2 h, beställ i god tid!", warn: true },
+        ]
+      },
+      {
+        label: "Heparinspädning (20 ml spruta)",
+        items: [
+          { text: "HF20: 0,5 ml Heparin APL + 19,5 ml NaCl → 25 E/ml", info: true },
+          { text: "ST60: 2,0 ml Heparin APL + 18,0 ml NaCl → 100 E/ml" },
+          { text: "ST100: 10,0 ml Heparin APL + 10,0 ml NaCl → 500 E/ml" },
+          { text: "Separat 10 ml-spruta Heparin 100 E/ml förberedd (för bolus och heparinlås)", info: true },
+          { text: "Båda sprутorna märkta med läkemedel, koncentration, datum, tid, signum" },
+        ]
+      },
+      {
+        label: "ECMO-maskin (om tillämpligt)",
+        items: [
+          { text: "Vätskedygnsklocka kontrollerad: Specialprogram → Tid/datum", info: true },
+          { text: "Diagram start tid och doser starttider ändrade till BIVA kl 07:59" },
+        ]
+      }
+    ]
+  },
+  {
+    id: 3,
+    title: "Provtagning & CliniSoft",
+    subtitle: "Baslinje – nollpunkt för all uppföljning",
+    color: "#06b6d4",
+    sections: [
+      {
+        label: "Provtagning (baslinje)",
+        items: [
+          { text: "Blodgas inkl. joniserat kalcium och kalium" },
+          { text: "Krea / Urea" },
+          { text: "APTT – baslinjevärdet avgör heparinstartdos" },
+          { text: "Hb / TPK (blodstatus)" },
+          { text: "BAS-test och blodgruppering" },
+        ]
+      },
+      {
+        label: "CliniSoft (CCC)",
+        items: [
+          { text: "CRRT-protokoll aktiverade: 'CRRT ordination' + 'CRRT ssk'" },
+          { text: "Prisma Flex EJ kopplad mot CliniSoft ännu (gör det max 60 min efter start)", warn: true },
+          { text: "Vätskedygnsklocka: Specialprogram → Diagram start tid & Doser starttider → BIVA 07:59" },
+          { text: "Vätskeborttag inställt på 5 ml/h vid uppstart (aldrig 0 ml/h)", warn: true },
+        ]
+      },
+      {
+        label: "Maskinplacering",
+        items: [
+          { text: "Maskin placerad nära CDK – inga sträckta slangar" },
+          { text: "Plant underlag – fri zon runt vågarna (inga sladdar, ingen personal)" },
+          { text: "Hjulen låsta – maskinen får INTE flyttas under drift", warn: true },
+        ]
+      }
+    ]
+  },
+  {
+    id: 4,
+    title: "Primning & systemuppstart",
+    subtitle: "Setmontering och NaCl-priming",
+    color: "#0ea5e9",
+    sections: [
+      {
+        label: "Initiala val på skärmen",
+        items: [
+          { text: "Valt 'Ny patient' – även vid omstart av samma patient" },
+          { text: "Patient-ID inmatat (personnummer)" },
+          { text: "Patientvikt inmatat som heltal (ingen decimal)" },
+          { text: "Hematokrit: HF20 = 45% · ST60/ST100 = 40%" },
+          { text: "Terapival: CVVHDF (standard BIVA)" },
+          { text: "Koagulationsmetod: Systemiskt (heparin sprutpump) – bekräftat med extra tryck" },
+        ]
+      },
+      {
+        label: "Ladda setet",
+        items: [
+          { text: "Följt skärmens instruktioner punkt för punkt" },
+          { text: "Inga slangar sitter fel eller är klämda" },
+          { text: "Bekräftat att rätt set har laddats" },
+          { text: "Heparinsprutan installerad i sprutpumpen + säkerhetskontroll utförd" },
+        ]
+      },
+      {
+        label: "Genomförande av primning",
+        items: [
+          { text: "Lösningar gängade fast – INTE spikade (spike ökar läckagerisk)", warn: true },
+          { text: "Påsar hänger i ALLA 3 vågkrokar på varje våg" },
+          { text: "ALLA klämmor öppnade när anslutning är klar", warn: true },
+          { text: "Priming 1: NaCl 1000 ml + 5 ml Heparin APL 1000 E/ml (hepariniserar membranet)" },
+          { text: "Priming 2: Ytterligare ren NaCl 1000 ml (sköljer bort överskottsheparin)" },
+          { text: "Primningstest utfört – om 'ytterligare primning ej möjlig' visas: ignorera och fortsätt", info: true },
+        ]
+      }
+    ]
+  },
+  {
+    id: 5,
+    title: "Behandlingsinställningar",
+    subtitle: "Alla flöden per läkarordination",
+    color: "#3b82f6",
+    sections: [
+      {
+        label: "Larmgräns oavsiktlig vätskebalans (ställs INNAN flöden)",
+        items: [
+          { text: "< 10 kg → gräns 80 ml / 3 timmar", info: true },
+          { text: "> 10 kg → gräns 110–140 ml / 3 timmar", info: true },
+        ]
+      },
+      {
+        label: "Flödesinställningar (per ordination)",
+        items: [
+          { text: "Blodflöde Qb inställt (steg om 2 ml/min)" },
+          { text: "Dialysatflöde inställt (steg om 50 ml/h)" },
+          { text: "Ersättningsflöde Post inställt (steg om 20 ml/h)" },
+          { text: "PBP (pre-blodpump) inställt (steg 2/5/10 ml/h beroende på Qb)" },
+          { text: "Patientens vätskeborttag inställt på 5 ml/h (aldrig 0 ml/h vid start)", warn: true },
+        ]
+      },
+      {
+        label: "Antikoagulation",
+        items: [
+          { text: "Startdos kontrollerad mot APTT (normalt: 20 E/kg/h om APTT 40–60 s)" },
+          { text: "Heparinbolus beräknad (10–40 E/kg per ordination) – ges manuellt via CVK/PVK", danger: true },
+          { text: "Sprutpumpshastighet beräknad och inställd (min 0,5 · max 5,0 ml/h)" },
+        ]
+      },
+      {
+        label: "Slutgodkännande",
+        items: [
+          { text: "Sista maskinbekräftelse av alla inställda värden genomförd", ok: true },
+        ]
+      }
+    ]
+  },
+  {
+    id: 6,
+    title: "Patientanslutning & uppstart",
+    subtitle: "Blodpriming (HF20), CDK-anslutning, hemodynamisk beredskap",
+    color: "#10b981",
+    sections: [
+      {
+        label: "Blodpriming – ENDAST HF20",
+        items: [
+          { text: "Spik i NaCl-påsen kopplad till primeblodpåsen" },
+          { text: "Setet primat tills hela slangsystemet och filtret är blodfyllt fram till avflödespåsen" },
+          { text: "Återgått till menyn 'Anslut patient'" },
+        ]
+      },
+      {
+        label: "Uppkoppling mot CDK (alla filter)",
+        items: [
+          { text: "Heparinlåset i CDK aspirerat bort (lätt att aspirera och spola i båda lumen)" },
+          { text: "Macro 3-vägsslang använd (INGA smartsites)", warn: true },
+          { text: "Röd slang → röd skänkel · Blå slang → blå skänkel" },
+          { text: "30 ml-spruta kopplad mot återflödesslangens 3-vägskran" },
+          { text: "Alla klämmor öppna – PBP-slangen (vit slang) öppen", warn: true },
+        ]
+      },
+      {
+        label: "Beredskap (kontrollera innan start)",
+        items: [
+          { text: "Två sjuksköterskor på sal (dubbelkontroll + patientövervakning)", warn: true },
+          { text: "Läkare på sal vid cirkulatorisk instabilitet (börja INTE utan)", danger: true },
+          { text: "Kontinuerlig invasiv BT-mätning aktiv" },
+          { text: "Volym och/eller inotrop redo" },
+          { text: "Primeblod vid sängen (HF20) – kan användas som akut volym" },
+        ]
+      },
+      {
+        label: "Uppstartssekvens",
+        items: [
+          { text: "Startat med lägre blodflöde än ordinerat – ökat gradvis mot målflöde" },
+          { text: "Värmarslangen kopplad direkt (hela slangen inne i värmarens fulla längd)" },
+          { text: "Inga slangar drar i CDK – avlastat vid behov" },
+          { text: "Automatiskt självtest godkänt (misslyckades: 'Gör om självtestet')" },
+          { text: "Extern värme aktiverad: Bair Hugger / värmetak (temperatur kan döljas av dialys!)", warn: true },
+          { text: "Prisma Flex kopplad mot CliniSoft inom 60 min efter start", ok: true },
+        ]
+      }
+    ]
+  },
+  {
+    id: 7,
+    title: "Under pågående drift",
+    subtitle: "Påsbyten, koagulationsövervakning och löpande kontroller",
+    color: "#f59e0b",
+    sections: [
+      {
+        label: "Påsbyten – metodiskt!",
+        items: [
+          { text: "Brutit kamrarna i ny påse och blandat ordentligt" },
+          { text: "Påsen märkt: datum, tid, eventuella tillsatser (etikett placerad utan att röra påsen)" },
+          { text: "Tryckt 'PÅSBYTE' på skärmen" },
+          { text: "Stängt klämma på slangen" },
+          { text: "Ny påse hänger fritt i ALLA 3 krokarna", warn: true },
+          { text: "Klämman öppnad" },
+          { text: "Påsvågen tryckt in tills tydligt klick hörs" },
+          { text: "Tryckt 'FORTSÄTT' på skärmen" },
+        ]
+      },
+      {
+        label: "Vid tillsatser i vätskor",
+        items: [
+          { text: "Tryckt 'Byt påse' INNAN tillsats gjordes om påsen hänger på maskinen", warn: true },
+          { text: "Samma mängd tillsatt i ALLA påsar" },
+          { text: "Varje påse märkt med tillsatsetikett" },
+        ]
+      },
+      {
+        label: "Heparin & APTT-strategi",
+        items: [
+          { text: "APTT tagits 4 h efter start" },
+          { text: "APTT tas var 6:e timme i stabil fas" },
+          { text: "APTT tagits 4 h efter varje dosändring" },
+          { text: "Kontinuerlig infusion 10–30 E/kg/h via sprutpump" },
+        ]
+      },
+      {
+        label: "Proaktiv vätskebalansövervakning",
+        items: [
+          { text: "Historik-vyn kontrollerad minst 1 gång/timme", info: true },
+          { text: "3-timmars-indikatorn (nedre högra hörnet) kontrollerad – ökar siffran stadigt?", warn: true },
+          { text: "Timlistan för 'Borttag' kontrollerad – inget såglandsmönster?", warn: true },
+          { text: "Oberoende manuella kontroller utförda – lita inte blint på huvudskärmen" },
+          { text: "Viktkontroll 2 gånger per dygn" },
+        ]
+      }
+    ]
+  },
+  {
+    id: 8,
+    title: "Recirkulering",
+    subtitle: "Alltid manuellt – välj ALDRIG 'Recirkulering' i maskinmenyn",
+    color: "#f97316",
+    sections: [
+      {
+        label: "Material",
+        items: [
+          { text: "NaCl 0,9% 250 ml påse" },
+          { text: "Hänga-fritt infusionsaggregat × 1" },
+          { text: "3-vägskranar macro × 2" },
+        ]
+      },
+      {
+        label: "Steg-för-steg",
+        items: [
+          { text: "Steg 1: Recirkulationsset hopsatt, HELA setet fyllt luftfritt med NaCl" },
+          { text: "Steg 2: Tryckt STOP. Klämmor stängda på CDK och maskinslangar (röd + blå). CDK spolat + heparinlås." },
+          { text: "Steg 3: Maskinslangar kopplade till 3-vägskranarna. Klämmor öppna. PBP-slangen (vit) STÄNGD!", warn: true },
+          { text: "Steg 4: Tryckt FORTSÄTT. Flöden justerade omedelbart: Dialysflöde→0, PBP→0, Ersättning→0, Qb=oförändrat, Vätskeborttag→5 ml/h" },
+          { text: "Steg 5: Heparininfusionen halverad" },
+          { text: "Steg 6: Max 2 timmars recirkulationstid. CCC-uppkopplingen behållen." },
+          { text: "Steg 7: Tryckt STOP. ALLA klämmor stängda på maskinslangar + NaCl-set" },
+          { text: "Steg 8: Maskinslangar kopplade till CDK (röd/röd, blå/blå). Heparinlås aspirerat. ALLA klämmor öppna – inkl. PBP-slangen (vit)!", danger: true },
+          { text: "Steg 9: Tryckt FORTSÄTT. ALLA flöden + Heparin återställda till ordinerade värden. Nytt APTT taget.", ok: true },
+        ]
+      }
+    ]
+  },
+  {
+    id: 9,
+    title: "Avslut av behandling",
+    subtitle: "Strikt rutin – blodretur ges ALDRIG",
+    color: "#ef4444",
+    sections: [
+      {
+        label: "Avslutssteg",
+        items: [
+          { text: "Tryckt STOP på skärmen" },
+          { text: "Valt 'AVSLUTA BEHANDLING' i menyn" },
+          { text: "ALDRIG returnerat blod till patienten – kassera setet säkert", danger: true },
+          { text: "Patienten kopplad bort med aseptisk teknik" },
+          { text: "Heparinlås i CDK-lumen satt – dokumenterat volym och koncentration" },
+          { text: "Krets och filter kasserade som biologiskt avfall" },
+          { text: "Dokumenterat: avsluttid, filterlivslängd (timmar), orsak till byte" },
+        ]
+      },
+      {
+        label: "Läkemedelsöversyn – DIREKT efter avslut",
+        items: [
+          { text: "ALLA pågående infusioner kontrollerade", warn: true },
+          { text: "Kaliuminfusioner och dialysspecifika doser extra granskade", danger: true },
+        ]
+      }
+    ]
+  }
+];
+
+let currentPhase = 0;
+let checked = {};
+
+function loadState() {
+  try {
+    const s = localStorage.getItem('prisma-checklist');
+    if (s) checked = JSON.parse(s);
+  } catch(e) { checked = {}; }
+}
+
+function saveState() {
+  try { localStorage.setItem('prisma-checklist', JSON.stringify(checked)); } catch(e) {}
+}
+
+function getKey(pi, si, ii) { return `${pi}-${si}-${ii}`; }
+
+function countPhase(pi) {
+  const phase = phases[pi];
+  let total = 0, done = 0;
+  phase.sections.forEach((sec, si) => {
+    sec.items.forEach((item, ii) => {
+      total++;
+      if (checked[getKey(pi, si, ii)]) done++;
+    });
+  });
+  return { total, done };
+}
+
+function countAll() {
+  let total = 0, done = 0;
+  phases.forEach((_, pi) => {
+    const c = countPhase(pi);
+    total += c.total; done += c.done;
+  });
+  return { total, done };
+}
+
+function renderNav() {
+  const nav = document.getElementById('phase-nav');
+  nav.innerHTML = phases.map((p, pi) => {
+    const c = countPhase(pi);
+    const isDone = c.done === c.total;
+    const isActive = pi === currentPhase;
+    return `<button class="phase-tab ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}"
+      style="--phase-color: ${p.color}"
+      onclick="switchPhase(${pi})">
+      <span class="dot"></span>
+      FAS ${p.id}
+    </button>`;
+  }).join('');
+}
+
+function renderPanels() {
+  const content = document.getElementById('content');
+  content.innerHTML = phases.map((p, pi) => {
+    const c = countPhase(pi);
+    const pct = Math.round(c.done / c.total * 100);
+    const sectionsHTML = p.sections.map((sec, si) => {
+      const itemsHTML = sec.items.map((item, ii) => {
+        const key = getKey(pi, si, ii);
+        const isChecked = !!checked[key];
+        let tagHTML = '';
+        if (item.danger) tagHTML = '<div class="tag tag-stop">⚠ Kritiskt</div>';
+        else if (item.warn) tagHTML = '<div class="tag tag-warn">⚡ Obs</div>';
+        else if (item.info) tagHTML = '<div class="tag tag-info">ℹ Info</div>';
+        else if (item.ok) tagHTML = '<div class="tag tag-ok">✓ Bekräfta</div>';
+        return `<div class="check-item ${isChecked ? 'checked' : ''} ${item.danger ? 'danger-item' : ''} ${item.warn ? 'warn-item' : ''}"
+          onclick="toggle('${key}', ${pi})">
+          <div class="checkbox">
+            <svg class="checkmark" width="12" height="9" viewBox="0 0 12 9" fill="none">
+              <path d="M1 4.5L4.5 8L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="check-content">
+            ${tagHTML}
+            <div class="check-main">${item.text}</div>
+            ${item.note ? `<div class="check-note">${item.note}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+
+      return `<div class="section-label">${sec.label}</div>${itemsHTML}`;
+    }).join('<div class="divider"></div>');
+
+    return `<div class="phase-panel ${pi === currentPhase ? 'active' : ''}" id="panel-${pi}" style="--phase-color: ${p.color}">
+      <div class="phase-header">
+        <div class="phase-badge" style="background: ${p.color}">F${p.id}</div>
+        <div class="phase-title-area">
+          <div class="phase-number">Fas ${p.id} av ${phases.length}</div>
+          <div class="phase-title">${p.title}</div>
+          <div class="phase-subtitle">${p.subtitle}</div>
+        </div>
+        <div class="phase-progress">${c.done}/${c.total}</div>
+      </div>
+      ${sectionsHTML}
+    </div>`;
+  }).join('');
+}
+
+function toggle(key, pi) {
+  checked[key] = !checked[key];
+  saveState();
+  updateUI();
+}
+
+function updateUI() {
+  // Update phase items
+  document.querySelectorAll('.check-item').forEach(el => {
+    const onclick = el.getAttribute('onclick');
+    if (!onclick) return;
+    const match = onclick.match(/toggle\('([^']+)'/);
+    if (!match) return;
+    const key = match[1];
+    const isChecked = !!checked[key];
+    el.classList.toggle('checked', isChecked);
+    el.querySelector('.checkbox svg').style.opacity = isChecked ? '1' : '0';
+  });
+
+  // Update phase progress displays
+  phases.forEach((_, pi) => {
+    const c = countPhase(pi);
+    const panel = document.getElementById(`panel-${pi}`);
+    if (panel) {
+      const prog = panel.querySelector('.phase-progress');
+      if (prog) prog.textContent = `${c.done}/${c.total}`;
+    }
+  });
+
+  // Total progress
+  const all = countAll();
+  const pct = Math.round(all.done / all.total * 100);
+  document.getElementById('total-pct').textContent = pct + '%';
+  document.getElementById('total-fill').style.width = pct + '%';
+
+  renderNav();
+  updateNavBtns();
+}
+
+function switchPhase(pi) {
+  document.querySelectorAll('.phase-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById(`panel-${pi}`);
+  if (panel) panel.classList.add('active');
+  currentPhase = pi;
+  renderNav();
+  updateNavBtns();
+  window.scrollTo(0, 0);
+}
+
+function navigate(dir) {
+  const next = currentPhase + dir;
+  if (next < 0 || next >= phases.length) return;
+  switchPhase(next);
+}
+
+function updateNavBtns() {
+  const prev = document.getElementById('btn-prev');
+  const next = document.getElementById('btn-next');
+  const phase = phases[currentPhase];
+  prev.disabled = currentPhase === 0;
+  next.disabled = currentPhase === phases.length - 1;
+  next.style.setProperty('--phase-color', phase.color);
+}
+
+function resetAll() {
+  document.getElementById('confirm-overlay').classList.add('show');
+}
+
+function hideConfirm() {
+  document.getElementById('confirm-overlay').classList.remove('show');
+}
+
+function closeConfirm(e) {
+  if (e.target === document.getElementById('confirm-overlay')) hideConfirm();
+}
+
+function doReset() {
+  hideConfirm();
+  checked = {};
+  saveState();
+  renderPanels();
+  updateUI();
+}
+
+loadState();
+renderNav();
+renderPanels();
+updateUI();
+</script>
+</body>
+</html>
